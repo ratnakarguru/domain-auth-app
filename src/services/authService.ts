@@ -16,6 +16,9 @@ export async function loginWithGoogle() {
     await signOut(auth).catch((error) => {
       console.error("Could not clear rejected Firebase session:", error);
     });
+    await clearGoogleSession().catch((error) => {
+      console.error("Could not clear rejected Google session:", error);
+    });
     throw new Error(rejectionMessage);
   }
 }
