@@ -1,163 +1,217 @@
 # Domain Auth
 
-**React Native (Expo) + Web + Google OAuth + Firebase Authentication + exact email-domain restriction**
+**Google Authentication & Domain-Restricted Access for Android and Web**
 
-Domain Auth is a training assignment built from one React Native codebase. It provides Google login, a verified-email and domain check, a protected Dashboard, Logout, and responsive layouts for Web and Android. iOS is an intended Expo target, but native iOS authentication has **not** been configured or tested.
+Built with **React Native (Expo)**, **Firebase Authentication**, and **Google OAuth 2.0**, Domain Auth is a responsive authentication application developed as a training assignment. It provides Google Sign-In, an email-domain access policy, a protected Dashboard, account information, and secure sign-out using a shared React Native codebase.
 
-## What is implemented
+**[Live Web App](https://ratnakar-domain-auth-app.netlify.app)** · **[Android APK (EAS Build)](https://expo.dev/accounts/ratnakarguru/projects/domain-auth-app/builds/31989227-5d68-49c6-b921-8fb35ccd51dd)** · **[GitHub Release v1.0.0](https://github.com/ratnakarguru/domain-auth-app/releases/tag/v1.0.0)**
 
-| Feature | Status |
+## Features
+
+| Feature | Description |
 | --- | --- |
-| Google sign-in through Firebase on Web and native Android | Implemented |
-| Exact `@hbplus.fit` domain check and verified-email requirement | Implemented in source; matching-account login still untested |
-| Protected Dashboard, session restoration, Logout, loading and error states | Implemented |
-| Responsive Login and Dashboard | Implemented |
-| Netlify single-page Web configuration and EAS Android build profiles | Implemented |
-| Admin/User roles, database, analytics, backend | Not implemented; optional assignment bonuses |
-| Native iOS authentication | Not configured or tested |
+| Google Sign-In | Google authentication on Web and native Android, integrated with Firebase Authentication |
+| Domain-based access | Authorizes only verified accounts whose email domain exactly matches `hbplus.fit` |
+| Protected Dashboard | Displays authenticated account information and prevents signed-out users from opening the Dashboard |
+| Account details | Shows the Google profile name, email, optional profile photo, and verification status |
+| Session management | Restores eligible sessions and clears unauthorized sessions |
+| Logout | Signs out of Firebase and clears the native Google session where applicable |
+| Responsive interface | Login, Dashboard, navbar, and footer layouts designed for browser and phone screens |
+| Authentication feedback | Loading indicators and clear error messages for sign-in and sign-out |
 
-## Tech stack
+## Application overview
 
-| Package | Project version | Purpose |
-| --- | --- | --- |
-| Expo | `~58.0.24` | Cross-platform app tooling |
-| React Native | `0.88.1` | Shared UI |
-| React Native Web | `~0.21.4` | Browser rendering |
-| Expo Router | `~58.0.31` | Login/Dashboard routes and protection |
-| Firebase | `^13.2.0` | Authentication and session state |
-| Google Sign-In | `@react-native-google-signin/google-signin ^17.0.0` | Native Google account chooser |
+The app has two primary screens:
 
-## Project map
+- **Login:** a responsive entry screen with a Google Sign-In button, loading feedback, and access-denied messaging.
+- **Dashboard:** a protected page with a navbar, welcome area, authentication status, Google account information, and Logout.
+
+### Authentication flow
 
 ```text
-src/
-  app/                       Login, Dashboard, protected route layout
-  config/firebaseApp.ts      Firebase Web app configuration
-  config/firebase.ts         Web Firebase Auth
-  config/firebase.native.ts  Native Firebase Auth persistence
-  context/AuthContext.tsx    Session restoration and authorization
-  services/authService.ts    Login rejection and Logout
-  services/googleSignIn.ts   Web Google popup
-  services/googleSignIn.native.ts  Android/iOS Google ID token
-  utils/domainValidator.ts   Exact allowed-domain policy
-scripts/check-domain.cjs     Strict policy checks
-app.json                     Expo application configuration
-eas.json                     Android development and preview profiles
-netlify.toml                 Web build and route rewrite
+Open application
+       |
+       v
+Login with Google
+       |
+       v
+Firebase Authentication
+       |
+       v
+Check verified email + exact email domain
+       |
+       +-- Authorized --> Protected Dashboard --> Logout
+       |
+       +-- Rejected ---> Clear sign-in session --> Login + error
 ```
 
-## Authentication and domain policy
+## Email-domain policy
 
-```mermaid
-flowchart LR
-  A[Login] --> B[Google OAuth]
-  B --> C[Firebase authenticated user]
-  C --> D{Verified email and exact domain?}
-  D -- Yes --> E[Protected Dashboard]
-  D -- No --> F[Sign out and show error]
-  E --> G[Logout]
-  G --> H[Sign out and return to Login]
-```
+The configured domain is **`hbplus.fit`**, matching the example supplied in the assignment. The policy is implemented in `src/utils/domainValidator.ts`.
 
-`src/utils/domainValidator.ts` currently sets `ALLOWED_DOMAIN = "hbplus.fit"`. This is the assignment example retained as the project's configured domain. Confirm the instructor's real intended domain before final submission; if it differs, change **that one constant**, update the tests, and configure a real Google account for the chosen domain. No successful `@hbplus.fit` Google login has been demonstrated.
-
-| Email | Policy result |
+| Email example | Access policy |
 | --- | --- |
-| `person@hbplus.fit` | Allowed only after successful Firebase Google authentication and verified email |
-| `person@gmail.com` | Rejected, including the former development account |
+| `employee@hbplus.fit` | Eligible after successful Google/Firebase sign-in and email verification |
+| `person@gmail.com` | Rejected |
 | `person@hbplus.fit.evil.com` | Rejected |
-| Missing, blank, malformed, or unverified email | Rejected |
+| Missing, malformed, or unverified email | Rejected |
 
-The app trims surrounding whitespace, ignores case, requires exactly one `@`, and compares the complete domain. Unauthorized domain sign-ins display exactly:
+Email validation trims surrounding whitespace, compares domains without case sensitivity, and requires an **exact** domain match. Sign-ins with an unauthorized email domain display:
 
 > Access restricted. Please login using your official domain email.
 
-`AuthContext` applies the same check to restored sessions before admitting the user to Dashboard. Expo Router protects `/dashboard` while signed out. These are client-side UI controls; any future backend or database must independently verify Firebase ID tokens and enforce authorization rules.
+An account with an unverified email is also rejected; it displays a separate verification error.
 
-## Prerequisites and local setup
+The same authorization check is applied when restoring authentication state. Expo Router guards the Dashboard route so a signed-out user cannot access it by entering `/dashboard` directly.
 
-- Node.js and npm, Git, internet access, and access to the existing Firebase project with Google sign-in enabled.
-- For Web, add `localhost` and the exact deployed hostname under Firebase Authentication **Settings → Authorized domains**; permit Google pop-ups in the browser.
-- For Android, use a phone or emulator with Google Play services, an Expo/EAS account, and the existing Firebase Android app with package `com.domainauthapp.mobile`. Register the SHA-1 of the **actual signing certificate** (SHA-256 if required), then use the matching refreshed `google-services.json`.
+## Technology stack
 
-On a fresh Windows checkout:
+| Technology | Version in project | Purpose |
+| --- | --- | --- |
+| Expo | `~58.0.24` | Development and Android builds |
+| React Native | `0.88.1` | Shared application UI |
+| React Native Web | `~0.21.4` | Browser rendering |
+| Expo Router | `~58.0.31` | Navigation and protected routes |
+| TypeScript | `~6.0.3` | Application code |
+| Firebase | `^13.2.0` | Authentication and session state |
+| Google Sign-In | `@react-native-google-signin/google-signin` `^17.0.0` | Native Android Google Sign-In |
+| Netlify | — | Web deployment |
+| EAS Build | — | Android development and standalone APK builds |
 
-```powershell
+## Project structure
+
+```text
+src/
+  app/
+    login.tsx                     Login screen
+    dashboard.tsx                 Protected Dashboard
+    _layout.tsx                   Route protection
+  config/
+    firebaseApp.ts               Firebase application configuration
+    firebase.ts                  Web Firebase Auth
+    firebase.native.ts           Native Firebase Auth persistence
+  context/
+    AuthContext.tsx              Session and authorization state
+  services/
+    authService.ts               Login, rejection cleanup, and Logout
+    googleSignIn.ts              Web Google Sign-In
+    googleSignIn.native.ts       Native Google Sign-In
+  utils/
+    domainValidator.ts           Exact domain validation
+scripts/
+  check-domain.cjs               Domain-policy checks
+app.json                         Expo app and Android identifiers
+eas.json                         EAS development/preview profiles
+netlify.toml                     Web export and SPA routing
+README.md                        Project documentation
+```
+
+## Getting started
+
+### Prerequisites
+
+- Node.js, npm, Git, and an internet connection.
+- Access to a configured Firebase project with Google Sign-In enabled.
+- For Android builds: an Expo account and an Android phone with Google Play services (or a suitable emulator).
+
+### 1. Clone and install
+
+```bash
 git clone https://github.com/ratnakarguru/domain-auth-app.git
 cd domain-auth-app
 npm install
+```
+
+### 2. Run on Web
+
+```bash
 npx expo start --web
 ```
 
-The app contains Firebase client configuration, but cloning alone does **not** prove that your own Firebase account, signing certificate, authorized domain, or native build is ready. If using a different Firebase project, update its real Web/native configuration and OAuth client IDs; do not invent values. Never commit service-account credentials or signing keys.
+For Google login in a browser, configure the relevant hostname in **Firebase Console → Authentication → Settings → Authorized domains**. The deployed Netlify hostname must be authorized as well.
 
-## Web and Netlify
+### 3. Run on Android (development build)
 
-For local Web development run `npx expo start --web`. The owner-provided live URL is [ratnakar-domain-auth-app.netlify.app](https://ratnakar-domain-auth-app.netlify.app). **That existing deployment predates the strict-domain change in this working tree.**
+This project uses a native Google Sign-In module, so Android testing uses a **custom Expo development build**, rather than Expo Go.
 
-`netlify.toml` runs `npx expo export --platform web`, publishes `dist`, and rewrites direct routes such as `/dashboard` to `/index.html`. After redeployment, ensure the exact Netlify hostname is in Firebase Authentication's authorized domains. Do not change Firebase `authDomain` merely because Netlify hosts the Web app.
-
-## Android development build and QR
-
-Expo Go cannot run this app's native Google Sign-In module. Keep the existing EAS project, Firebase project, Android package, and signing keystore. Use the installed custom development build:
-
-```powershell
+```bash
 npx eas-cli@latest login
 npx eas-cli@latest project:info
 npx eas-cli@latest build -p android --profile development
-# Install the resulting development APK on the device.
+```
+
+Install the resulting development APK on your phone. Then start the development server:
+
+```bash
 npx expo start --dev-client --tunnel --clear
 ```
 
-Scan the new QR into the **installed development app**, not Expo Go. Tunnel is useful when LAN access fails; on the same Wi-Fi, `npx expo start --dev-client --clear` is an alternative. The existing development APK can usually load these JavaScript-only policy changes from a fresh Metro bundle. Native config or credential changes require a rebuild.
+Scan the development-server QR code with the phone and open it in the installed Domain Auth development app. Tunnel mode is useful when your phone cannot connect to the computer's LAN address. If local networking works, `npx expo start --dev-client --clear` is also supported.
 
-The owner reports that an earlier development APK installed and Google sign-in worked with the temporary Gmail exception. The checked-in `google-services.json` currently lists a Web OAuth client but no Android OAuth entry. For any fresh signed build or OAuth code 10 error, verify the actual EAS certificate SHA-1, Firebase Android app, Android OAuth client, Web client ID, refreshed JSON, and installed build. Do not regenerate the existing signing keystore to fix a policy change.
+### 4. Build a standalone Android APK
 
-For a standalone installable preview APK that opens **without Metro**:
-
-```powershell
+```bash
 npx eas-cli@latest build -p android --profile preview
 ```
 
-The preview profile sets `android.buildType` to `apk`. Build and install a **new** preview APK after the strict-domain change. Its Google sign-in still depends on correct signed Firebase/OAuth configuration.
+The preview profile builds an installable APK that runs without the Expo development server. The **[Expo build page](https://expo.dev/accounts/ratnakarguru/projects/domain-auth-app/builds/31989227-5d68-49c6-b921-8fb35ccd51dd)** reports a succeeded APK. The APK is also attached to the **[v1.0.0 GitHub Release](https://github.com/ratnakarguru/domain-auth-app/releases/tag/v1.0.0)**. The owner reports installing it, launching it without Metro, and confirming Gmail rejection.
 
-## Verification status
+## Firebase and Android configuration
+
+The existing application uses the Firebase project associated with the repository. If configuring a different Firebase project, update the actual Firebase and OAuth configuration rather than using placeholder credentials.
+
+For Android Google Sign-In, check that:
+
+1. The Firebase Android application package is `com.domainauthapp.mobile`.
+2. The signing certificate's **SHA-1** is registered with that Firebase Android app (and SHA-256 when appropriate).
+3. The downloaded `google-services.json` matches the Firebase project and Android app.
+4. The native Google Sign-In configuration uses the appropriate OAuth client ID.
+5. The APK is rebuilt when native configuration or signing credentials change.
+
+The checked-in `google-services.json` currently lists a Web OAuth client but no Android OAuth client entry. The owner reports that the existing development build worked. For a fresh signed build or an OAuth code 10 error, verify the real signing SHA-1 and download a refreshed JSON from Firebase; keep the existing EAS keystore.
+
+For Web, keep the Firebase Authentication authorized-domain list in sync with the actual site hostname. Hosting a Web app on Netlify does not require changing Firebase `authDomain` to the Netlify domain.
+
+## Web deployment
+
+The live Web application is hosted at:
+
+**https://ratnakar-domain-auth-app.netlify.app**
+
+`netlify.toml` exports the Web bundle with `npx expo export --platform web`, publishes the `dist` directory, and configures a single-page-app rewrite so that routes such as `/dashboard` work on refresh.
+
+The GitHub repository is connected to Netlify for deployment from the `main` branch.
+
+## Testing and verification
 
 | Check | Result |
 | --- | --- |
-| TypeScript: `npx tsc --noEmit` | Passed locally |
-| Lint: `npm run lint` | Passed locally |
-| Strict policy: `node scripts/check-domain.cjs` | Passed: 3 allowed, 12 rejected, plus mocked sign-in rejection/cleanup checks (not live OAuth) |
-| Expo Doctor: `npx expo-doctor@latest` | Passed: 20/20 |
-| Web: `npx expo export --platform web` | Passed; `dist/index.html` exists |
-| Android JavaScript: `npx expo export --platform android --output-dir dist-android-check` | Passed; this is not an APK or OAuth test |
-| Web login, Dashboard, Logout, Netlify with former Gmail exception | Owner-reported working **before** strict change |
-| Android development APK, Google chooser/login, Dashboard, Logout, rejection, responsive UI with former Gmail exception | Owner-reported working **before** strict change |
-| Successful strict-domain Web/Android Google login | **Not tested:** no confirmed matching-domain Google account |
-| New standalone preview APK | Not built or tested here |
-| Native iOS | Not configured or tested |
+| TypeScript and lint | Passed locally |
+| Strict-domain tests | Passed: 3 allowed and 12 rejected examples; mocked rejection/cleanup checks passed |
+| Expo Doctor | Passed: 20/20 |
+| Web and Android JavaScript exports | Passed |
+| Android development build | Google Sign-In, Dashboard, Logout, and session behavior tested with the temporary development account before final enforcement |
+| Standalone Android preview APK | Build page confirms a succeeded APK; owner reports installation, standalone launch, and unauthorized Gmail rejection with the final strict-domain version |
+| Web UI | Login, routing, and responsive behavior checked locally; live Web login was previously tested before strict enforcement |
 
-The new strict policy intentionally rejects the former development Gmail. A real, verified Google account at the instructor-approved domain is needed to prove a successful final login; logic tests alone cannot prove OAuth end to end.
+**Authorized-account verification:** The app's final configured domain is `@hbplus.fit`. Its exact-match policy is covered by automated tests, but successful live Google sign-in with a matching-domain account has not been demonstrated. A valid matching Google account is needed to complete that end-to-end check.
 
 ## Troubleshooting
 
-- **Google `DEVELOPER_ERROR` / code 10 on Android:** verify `com.domainauthapp.mobile`, SHA-1 of the build's actual signing certificate, Android OAuth client, Web client ID, refreshed `google-services.json`, and rebuild/reinstall. Development, preview, and Play-signed builds can use different certificates.
-- **Metro `ETIMEDOUT` on port 8081:** keep phone and computer on the same LAN, check firewall and `http://<computer-LAN-IP>:8081/status`, or use `--tunnel`. Scan with the custom app.
-- **Signed-out `/dashboard` opens Login:** expected. A matching-domain account must complete Google/Firebase sign-in and email verification before Dashboard is available.
-- **Web popup error:** confirm Firebase authorized domains and browser pop-up permissions.
+| Problem | Suggested check |
+| --- | --- |
+| Android Google Sign-In returns `DEVELOPER_ERROR` or code `10` | Verify the package name, EAS signing SHA-1, Firebase Android OAuth client, Web client ID, and refreshed `google-services.json` |
+| Phone cannot connect to Metro (`ETIMEDOUT`, port `8081`) | Use `npx expo start --dev-client --tunnel --clear`, or check LAN and firewall connectivity |
+| Google popup fails on Web | Check Firebase authorized domains and browser popup permissions |
+| `/dashboard` redirects to Login | Expected when there is no authorized Firebase session |
 
-## Submission and security checklist
+## Security notes
 
-1. Confirm with the instructor that `hbplus.fit` is the intended final domain and obtain a real, verified matching Google account. Test its Web and Android login, session restore, Dashboard, and Logout; test Gmail rejection.
-2. Review the local diff, then commit and push only when ready. A push to the existing `main` branch triggers the configured Netlify build; verify the new deployment and direct `/dashboard` behavior.
-3. Build and test a new Android preview APK for the final policy. Include the existing development-build instructions and real screenshots only if you have them. Record iOS as untested.
+- The app checks Firebase authentication state, email verification, and exact domain eligibility before showing the protected Dashboard.
+- Rejected accounts are signed out, and access checks are applied when sessions are restored.
+- Keep service-account credentials, keystore files, signing passwords, and private tokens out of source control.
+- Dashboard route guards protect the application interface. Any future protected API or database must independently verify Firebase ID tokens and enforce authorization on the server.
 
-```powershell
-git status
-git diff
-git add src/utils/domainValidator.ts src/services/authService.ts scripts/check-domain.cjs README.md
-git commit -m "Finalize domain policy and documentation"
-git push origin main
-```
+---
 
-Firebase client SDK Web configuration is public app configuration, not a server secret. Keep service-account JSON, EAS signing keys/passwords, access tokens, and private credentials out of Git. Any future protected backend or database needs server-side Firebase token verification and authorization rules.
+**Project:** Domain Auth · **Platforms:** Android and Web · **Repository:** [ratnakarguru/domain-auth-app](https://github.com/ratnakarguru/domain-auth-app)
