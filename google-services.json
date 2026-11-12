@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "370081725844",
+    "project_id": "domain-auth-app-a8d19",
+    "storage_bucket": "domain-auth-app-a8d19.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:370081725844:android:01e736b381dfb88faba381",
+        "android_client_info": {
+          "package_name": "com.domainauthapp.mobile"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "370081725844-akkvdkh1hq0urff932q75n6ck0vbi1is.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAQHMD-WFo40t9bukE04tS9fmnzGd0DoVs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "370081725844-akkvdkh1hq0urff932q75n6ck0vbi1is.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
