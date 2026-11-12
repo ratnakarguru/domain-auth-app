@@ -87,12 +87,12 @@ export default function Dashboard() {
           </View>
 
           <View style={[styles.summary, compact && styles.summaryCompact]}>
-            <View style={[styles.summaryCard, compact && styles.summaryCardCompact]}>
+            <View style={[styles.summaryCard, !compact && styles.summaryCardWide]}>
               <Text style={styles.summaryLabel}>Access</Text>
               <Text style={styles.summaryValue}>Granted</Text>
               <Text style={styles.summaryNote}>This dashboard is protected.</Text>
             </View>
-            <View style={[styles.summaryCard, compact && styles.summaryCardCompact]}>
+            <View style={[styles.summaryCard, !compact && styles.summaryCardWide]}>
               <Text style={styles.summaryLabel}>Email</Text>
               <Text style={styles.summaryValue}>
                 {user.emailVerified ? "Verified" : "Not verified"}
@@ -100,7 +100,7 @@ export default function Dashboard() {
               <Text style={styles.summaryNote}>Firebase account status</Text>
             </View>
             {signedInWithGoogle && (
-              <View style={[styles.summaryCard, compact && styles.summaryCardCompact]}>
+              <View style={[styles.summaryCard, !compact && styles.summaryCardWide]}>
                 <Text style={styles.summaryLabel}>Sign-in method</Text>
                 <Text style={styles.summaryValue}>Google</Text>
                 <Text style={styles.summaryNote}>Connected provider</Text>
@@ -189,6 +189,8 @@ const styles = StyleSheet.create({
   brandGroup: {
     flexDirection: "row",
     alignItems: "center",
+    flexShrink: 1,
+    minWidth: 0,
   },
   brandMark: {
     width: 36,
@@ -274,6 +276,7 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 26,
     fontWeight: "700",
+    flexShrink: 1,
   },
   heroDescription: {
     color: "#DBEAFE",
@@ -284,21 +287,21 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 12,
     marginBottom: 16,
+    width: "100%",
   },
   summaryCompact: {
     flexDirection: "column",
   },
   summaryCard: {
-    flex: 1,
     backgroundColor: "#FFFFFF",
     borderColor: "#E5E7EB",
     borderWidth: 1,
     borderRadius: 16,
     padding: 18,
   },
-  summaryCardCompact: {
-    flex: 0,
-    width: "100%",
+  summaryCardWide: {
+    flex: 1,
+    minWidth: 0,
   },
   summaryLabel: {
     color: "#6B7280",
@@ -354,6 +357,7 @@ const styles = StyleSheet.create({
   profileDetails: {
     flex: 1,
     marginLeft: 16,
+    minWidth: 0,
   },
   fieldLabel: {
     color: "#6B7280",

@@ -1,13 +1,15 @@
 
 import { useState } from "react";
 import {
-    ActivityIndicator, StyleSheet,
-    Text,
-    TouchableOpacity,
-    View
+  ActivityIndicator,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { loginWithGoogle } from "../services/authService";
-
 
 export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
@@ -26,50 +28,58 @@ export default function LoginScreen() {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.card}>
-        <View style={styles.logo}>
-          <Text style={styles.logoText}>H</Text>
+    <SafeAreaView style={styles.screen}>
+      <ScrollView style={styles.scrollView} contentContainerStyle={styles.container}>
+        <View style={styles.card}>
+          <View style={styles.logo}>
+            <Text style={styles.logoText}>H</Text>
+          </View>
+
+          <Text style={styles.title}>Welcome Back</Text>
+
+          <Text style={styles.subtitle}>
+            Sign in with an authorized Google account to continue.
+          </Text>
+
+          <TouchableOpacity
+            style={[styles.googleButton, loading && styles.disabledButton]}
+            onPress={handleGoogleLogin}
+            disabled={loading}
+          >
+            {loading ? (
+              <ActivityIndicator color="#ffffff" />
+            ) : (
+              <Text style={styles.buttonText}>
+                Continue with Google
+              </Text>
+            )}
+          </TouchableOpacity>
+
+          {errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
+
+          <Text style={styles.restriction}>
+            Access is limited to authorized accounts.
+          </Text>
         </View>
 
-        <Text style={styles.title}>Welcome Back</Text>
-
-        <Text style={styles.subtitle}>
-          Sign in with an authorized Google account to continue.
+        <Text style={styles.footer}>
+          Secure Company Portal
         </Text>
-
-        <TouchableOpacity
-          style={[styles.googleButton, loading && styles.disabledButton]}
-          onPress={handleGoogleLogin}
-          disabled={loading}
-        >
-          {loading ? (
-            <ActivityIndicator color="#ffffff" />
-          ) : (
-            <Text style={styles.buttonText}>
-              Continue with Google
-            </Text>
-          )}
-        </TouchableOpacity>
-
-        {errorMessage && <Text style={styles.error}>{errorMessage}</Text>}
-
-        <Text style={styles.restriction}>
-          Access is limited to authorized accounts.
-        </Text>
-      </View>
-
-      <Text style={styles.footer}>
-        Secure Company Portal
-      </Text>
-    </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
+  screen: {
     flex: 1,
     backgroundColor: "#F4F6FA",
+  },
+  scrollView: {
+    flex: 1,
+  },
+  container: {
+    flexGrow: 1,
     justifyContent: "center",
     alignItems: "center",
     padding: 24,
